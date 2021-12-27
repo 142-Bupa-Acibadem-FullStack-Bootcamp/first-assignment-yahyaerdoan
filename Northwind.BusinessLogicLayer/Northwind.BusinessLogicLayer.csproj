@@ -6,7 +6,11 @@
 
 	<ItemGroup>
 		<Folder Include="Abstract\" />
-		<Folder Include="Concrete\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Northwind.DataAccessLayer\Northwind.DataAccessLayer.csproj" />
+	  <ProjectReference Include="..\Northwind.InterfaceLayer\Northwind.InterfaceLayer.csproj" />
 	</ItemGroup>
 
 </Project>
