@@ -16,7 +16,7 @@ namespace Northwind.DataAccessLayer.Concrete.EntityFramework.UnitOfWorkRepositor
     {
         #region Variables
 
-        private DbContext context;
+        private readonly DbContext context;
         private IDbContextTransaction transaction;
         bool dispose;
 
@@ -103,8 +103,11 @@ namespace Northwind.DataAccessLayer.Concrete.EntityFramework.UnitOfWorkRepositor
         {
             //TODO : Dispose true ise bellekte kullanılmayan veri hala duruyorsa sil
             Dispose(true);
-            //TODO : Garbage Collector tetikler
+            //TODO : Garbage Collector tetikler. O anki nesneye ait sonlandırma kuyruğundaki kaynaklarıda serbest bırakmış olur.
             GC.SuppressFinalize(this);
+
+
+            //TODO :? Dispose etmek istediğimiz nesnenin unmanaged referansları nedir? Ayrıca try catch finally içinde kullanmak nasıl bir durum olurdu? sonlandırıcının uygulama tarafından zaten serbest bırakılmış yönetilmeyen kaynakları serbest bırakmasını engellemek için yapılır
         }
     }
 }

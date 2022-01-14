@@ -6,7 +6,9 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Northwind.BusinessLogicLayer.Concrete.MapperConfiguration;
 using Northwind.DataAccessLayer.Abstract.GenericRepository;
 using Northwind.DataAccessLayer.Abstract.UnitOfWorkRepository;
 using Northwind.EntityLayer.Abstract.IBases;
@@ -15,30 +17,29 @@ using Northwind.InterfaceLayer.Abstract.GenericService.Abstract;
 
 namespace Northwind.BusinessLogicLayer.Concrete.BusinessLogicLayerBase
 {
-    public class BusinessLogicLayerBase<T, TDto> : IGenericService<T, TDto> where T : EntityBase where TDto : DtoBase
+    public class BusinessLogicBase<T, TDto> : IGenericService<T, TDto> where T : EntityBase where TDto : DtoBase
     {
         #region Variables
 
         private readonly IUnitOfWorkRepository unitOfWork;
         private readonly IServiceProvider service;
         private readonly IGenericRepository<T> repository;
-        private readonly Mapper mapper;
 
         #endregion
 
-        public BusinessLogicLayerBase(IServiceProvider service)
+        public BusinessLogicBase(IServiceProvider service)
         {
             unitOfWork = service.GetService<IUnitOfWorkRepository>();
             repository = unitOfWork.GetRepository<T>();
             this.service = service;
-            mapper = new Mapper((IConfigurationProvider)service);
         }
+
         public IResponseBase<TDto> Add(TDto entity, bool saveChanges = true)
         {
             try
             {
                 var resolvedResult = " ";
-                var TResult = repository.Add(mapper.Map<T>(entity));
+                var TResult = repository.Add(ObjectMapper.Mapper.Map<T>(entity));
                 resolvedResult = string.Join(',',
                     TResult.GetType().GetProperties()
                         .Select(x => $"-{x.Name}: {x.GetValue(TResult) ?? ""}-"));
@@ -47,11 +48,12 @@ namespace Northwind.BusinessLogicLayer.Concrete.BusinessLogicLayerBase
                 {
                     Save();
                 }
+
                 return new ResponseBase<TDto>
                 {
-                    Data = mapper.Map<T, TDto>(TResult),
+                    Data = ObjectMapper.Mapper.Map<T, TDto>(TResult),
                     Message = "Success",
-                    StatusCode = 1
+                    StatusCode = StatusCodes.Status200OK
                 };
             }
             catch (Exception e)
@@ -60,7 +62,7 @@ namespace Northwind.BusinessLogicLayer.Concrete.BusinessLogicLayerBase
                 {
                     Data = null,
                     Message = $"Error:{e.Message}",
-                    StatusCode = 1
+                    StatusCode = StatusCodes.Status500InternalServerError
                 };
             }
         }
@@ -70,9 +72,28 @@ namespace Northwind.BusinessLogicLayer.Concrete.BusinessLogicLayerBase
             throw new NotImplementedException();
         }
 
-        public IResponseBase<bool> DeleteById(int id)
+        public IResponseBase<bool> DeleteById(int id, bool saveChanges = true)
         {
-            throw new NotImplementedException();
+            try
+            {
+                repository.Delete(id);
+                if (saveChanges) Save();
+                return new ResponseBase<bool>
+                {
+                    Data = true,
+                    Message = "Success",
+                    StatusCode = StatusCodes.Status200OK
+                };
+            }
+            catch (Exception e)
+            {
+                return new ResponseBase<bool>
+                {
+                    Data = false,
+                    Message = $"Error:{e.Message}",
+                    StatusCode = StatusCodes.Status500InternalServerError
+                };
+            }
         }
 
         public IResponseBase<Task<bool>> DeleteByIdAsync(int id)
@@ -106,9 +127,9 @@ namespace Northwind.BusinessLogicLayer.Concrete.BusinessLogicLayerBase
             {
                 return new ResponseBase<TDto>
                 {
-                    Data = mapper.Map<T,TDto>(repository.Find(id)),
+                    Data = ObjectMapper.Mapper.Map<T, TDto>(repository.Find(id)),
                     Message = "Success",
-                    StatusCode = 1
+                    StatusCode = StatusCodes.Status200OK
                 };
             }
             catch (Exception e)
@@ -117,7 +138,7 @@ namespace Northwind.BusinessLogicLayer.Concrete.BusinessLogicLayerBase
                 {
                     Data = null,
                     Message = $"Error:{e.Message}",
-                    StatusCode = 1
+                    StatusCode = StatusCodes.Status500InternalServerError
                 };
             }
         }
@@ -129,12 +150,52 @@ namespace Northwind.BusinessLogicLayer.Concrete.BusinessLogicLayerBase
 
         public IResponseBase<List<TDto>> GetAll()
         {
-            throw new NotImplementedException();
+            try
+            {
+                List<T> getallList = repository.GetAll();
+                var dtogetallList = getallList.Select(x => ObjectMapper.Mapper.Map<TDto>(x)).ToList();
+                var response = new ResponseBase<List<TDto>>
+                {
+                    Data = dtogetallList,
+                    Message = "Success",
+                    StatusCode = StatusCodes.Status200OK
+                };
+                return response;
+            }
+            catch (Exception e)
+            {
+                return new ResponseBase<List<TDto>>
+                {
+                    Data = null,
+                    Message = $"Error:{e.Message}",
+                    StatusCode = StatusCodes.Status500InternalServerError
+                };
+            }
         }
 
         public IResponseBase<List<TDto>> GetAll(Expression<Func<T, bool>> expression)
         {
-            throw new NotImplementedException();
+            try
+            {
+                List<T> getallList = repository.GetAll(expression).ToList();
+                var dtogetallList = getallList.Select(x => ObjectMapper.Mapper.Map<TDto>(x)).ToList();
+                var response = new ResponseBase<List<TDto>>
+                {
+                    Data = dtogetallList,
+                    Message = "Success",
+                    StatusCode = StatusCodes.Status200OK
+                };
+                return response;
+            }
+            catch (Exception e)
+            {
+                return new ResponseBase<List<TDto>>
+                {
+                    Data = null,
+                    Message = $"Error:{e.Message}",
+                    StatusCode = StatusCodes.Status500InternalServerError
+                };
+            }
         }
 
         public void Save()
