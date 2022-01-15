@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Northwind.BusinessLogicLayer.Concrete.BusinessLogicManagers;
 using Northwind.DataAccessLayer.Abstract.IRepository;
 using Northwind.DataAccessLayer.Abstract.UnitOfWorkRepository;
@@ -45,8 +46,22 @@ namespace Northwind.WebApiLayer
             #endregion
 
             #region ApplicationContext
-            services.AddDbContext<NorthwindContext>();
+            //TODO : Veri tabaný baðlantýsý default di çözümü(baðlantý adresi contexte tutuluyor.)
+
+            /* services.AddDbContext<NorthwindContext>();
+            services.AddScoped<DbContext, NorthwindContext>(); */
+
+            //TODO : Veri tabaný baðlantýsý di çözümü(baðlantý adresi appsettings.json'da tutuluyor. Migration oluþturmak istediðimizde nerede oluþacaðýný söyledik.)
             services.AddScoped<DbContext, NorthwindContext>();
+            services.AddDbContext<NorthwindContext>(DbContextOptionsBuilder =>
+            {
+                DbContextOptionsBuilder.UseSqlServer(Configuration.GetConnectionString("SqlServer"),
+                    SqlServerDbContextOptionsBuilder =>
+                    {
+                        SqlServerDbContextOptionsBuilder.MigrationsAssembly("Northwind.DataAccessLayer");
+                    });
+            });
+
             #endregion
 
             #region ServiceSection
