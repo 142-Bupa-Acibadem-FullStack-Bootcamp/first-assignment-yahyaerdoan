@@ -51,7 +51,7 @@ namespace Northwind.WebApiLayer
 
             #region ServiceSection
             services.AddScoped<IOrderService, OrderManager>();
-            //services.AddScoped<ICustomerService, CustomerManager>();
+            services.AddScoped<ICustomerService, CustomerManager>();
             #endregion
 
             #region RepositorySection
