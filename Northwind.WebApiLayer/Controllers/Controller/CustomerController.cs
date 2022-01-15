@@ -22,6 +22,7 @@ namespace Northwind.WebApiLayer.Controllers.Controller
         {
             _customerService = customerService;
         }
+        /*
         [HttpGet("GetByStringId")]
         public IResponseBase<DtoCustomer> GetByStringId(string id)
         {
@@ -39,6 +40,17 @@ namespace Northwind.WebApiLayer.Controllers.Controller
                     StatusCode = StatusCodes.Status500InternalServerError
                 };
             }
+        }
+        */
+        [HttpGet("GetByStringIdDeneme")]
+        public IActionResult GetByStringId(string id)
+        {
+            var result = _customerService.GetByStringId(id);
+            if (result is not null)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result);
         }
     }
 }
