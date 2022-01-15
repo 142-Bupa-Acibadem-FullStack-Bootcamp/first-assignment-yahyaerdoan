@@ -17,8 +17,28 @@ namespace Northwind.WebApiLayer.Controllers.Controller
     [ApiController]
     public class CustomerController : BaseController<ICustomerService, Customer, DtoCustomer>
     {
-        public CustomerController(ICustomerService service) : base(service)
+        private readonly ICustomerService _customerService;
+        public CustomerController(ICustomerService service, ICustomerService customerService) : base(service)
         {
+            _customerService = customerService;
+        }
+        [HttpGet("GetByStringId")]
+        public IResponseBase<DtoCustomer> GetByStringId(string id)
+        {
+            try
+            {
+                var entity = _customerService.GetByStringId(id);
+                return entity;
+            }
+            catch (Exception e)
+            {
+                return new ResponseBase<DtoCustomer>
+                {
+                    Data = null,
+                    Message = $"Error:{e.Message}",
+                    StatusCode = StatusCodes.Status500InternalServerError
+                };
+            }
         }
     }
 }

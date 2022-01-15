@@ -19,5 +19,11 @@ namespace Northwind.DataAccessLayer.Concrete.EntityFramework.EfRepository
         {
             return set.AsQueryable();
         }
+
+        public Customer GetByStringId(string id)
+        {
+            var customerStringId = set.SingleOrDefault(x => x.CustomerId == id);
+            return customerStringId;
+        }
     }
 }
